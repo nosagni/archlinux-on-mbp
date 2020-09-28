@@ -149,7 +149,7 @@ ip link  # Check hardware
 nmcli dev wifi connect <wifi-name> password <password>
 
 
-# Install MacBook Pro stuff
+# Install mbpfan and cpupower
 
 yay -S mbpfan-git cpupower
 
@@ -157,42 +157,48 @@ sudo systemctl enable mbpfan
 sudo systemctl enable cpupower
 
 
-## Define CPUs governor
+# Define CPUs governor
 
 sudo vim /etc/default/cpupower
 governor='powersave'. # change line to
 
 
-## Make file and write two lines
+# Make file and write two lines
+
 sudo vim /etc/modules
 coretemp
 applesmc
 
 
-## Enable continuous TRIM on SSD
+# Enable continuous TRIM on SSD
 
 sudo vim /etc/fstab
 
-### on disk sda2, after: rw,relatime,
+## on disk sda2, after: rw,relatime,
 
 data=ordered,discard,
 
-## Disable wake from S3 on XHC1
+
+# Disable wake from S3 on XHC1
 
 sudo vim /etc/udev/rules.d/90-xhc_sleep.rules. # create file
 SUBSYSTEM=="pci", KERNEL=="0000:00:14.0", ATTR{power/wakeup}="disabled"
 
-### Check if XHC1 is disabled before and after reboot
+## Check if XHC1 is disabled before and after reboot
 
 cat /proc/acpi/wakeup
 
-## Fix audio
+
+# Fix audio
+
 pacman -S alsa-utils alsa-plugins
 
-### Unmute the speakers
+## Unmute the speakers
+
 alsamixer 
 
-## Enable tapping instead of being forced to click the bottom section of touchpad
+
+# Enable tapping instead of being forced to click the bottom section of touchpad
 
 sudo vim /etc/X11/xorg.conf.d/30-touchpad.conf
 
@@ -208,7 +214,8 @@ Section "InputClass"
     Option "AccelProfile" "flat"
 EndSection
 
-## Enable natural scrolling on external mouse
+
+# Enable natural scrolling on external mouse
 
 sudo vim /etc/X11/xorg.conf.d/30-pointer.conf
 
@@ -221,11 +228,10 @@ Section "InputClass"
     Option "NaturalScrolling" "true"
 EndSection
 
-## Control keyboard backlight
+# Set keyboard backlight
 
 sudo pacman -S brightnessctl
 brightnessctl --list
 brightnessctl --device='smc::kbd_backlight' info
-brightnessctl --device='smc::kbd_backlight' set 127  # 50%
-
+brightnessctl --device='smc::kbd_backlight' set 127  # or 50%
 
