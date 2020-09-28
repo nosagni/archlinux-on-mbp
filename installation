@@ -1,0 +1,231 @@
+# Boot from archlinux
+
+
+# Change keyboard layout
+
+loadkeys is-latin1
+
+
+# Set the time
+
+timedatectl set-ntp true
+
+
+# Connect to PHONE with USB TETHERING
+
+
+# Check if internet is working.
+
+ping google.com
+
+
+# Partition the disk
+
+cgdisk /dev/sda
+1 sda1 EFI System (Boot Partition +200M)  ef00
+2 sda2 Linux filesystem (Root Partition)  8300
+
+
+# Create filesystem
+
+mkfs.vfat -F32 /dev/sda1
+mkfs.ext4 /dev/sda2
+
+
+# Mount the disk and make folders
+
+mount /dev/sda2 /mnt
+mkdir /mnt/boot /mnt/home
+mount /dev/sda1 /mnt/boot
+
+
+# Install Linux on the disk
+
+pacstrap /mnt linux linux-firmware base base-devel vim
+
+genfstab -U /mnt >> /mnt/etc/fstab
+
+
+# Switch to disks root terminal
+
+arch-chroot /mnt
+
+
+# Set locale, keyboard and timezone
+
+vim /etc/locale.gen
+/en_US  # find en_US
+en_US.UTF-8 UTF-8  # uncomment en_US
+:wq  # write changes to file
+locale-gen  # Generate locales
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
+localectl set-keymap --no-convert is-latin1
+ln -sf /usr/share/zoneinfo/Iceland /etc/localtime
+
+
+# Sync hardware clock
+
+hwclock --systohc --utc
+
+
+# Setup hostname
+
+echo "NAME" > /etc/hostname
+echo "127.0.0.1 localhost" >> /etc/hosts
+echo "::1 localhost" >> /etc/hosts
+echo "127.0.1.1 NAME.localdomain NAME" >> /etc/hosts
+
+
+# Uncomment %wheel
+vim /etc/sudoers
+%wheel ALL=\(ALL\) ALL)
+
+
+# Set root password
+
+passwd
+
+
+# Install bootloader
+
+pacman -S dosfstools intel-ucode
+bootctl --path=/boot install
+
+
+# Create an Arch Linux boot entry file
+## You need the PARTUUID of your root partition (sda2)
+
+blkid  # write down PARTUUID
+
+vim /boot/loader/entries/arch.conf
+
+title Arch Linux
+linux /vmlinuz-linux
+initrd /intel-ucode.img
+initrd /initramfs-linux.img
+options root=PARTUUID=           rw quiet acpi_mask_gpe=0x06
+
+
+## Tell systemd-boot boot manager to use arch.conf file
+
+echo "default arch" > /boot/loader/loader.conf
+
+
+# Reboot into the new system
+
+exit
+umount -R /mnt
+systemctl reboot
+
+
+# Create user account
+
+useradd -m -G wheel -s /bin/bash NAME
+passwd NAME
+
+# Switch user
+
+su NAME
+
+
+# Install YAY for AUR
+
+sudo pacman -S git
+cd  # user directory
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
+
+
+# Wi-Fi Internet
+
+yay -S broadcom-wl 
+sudo systemctl disable dhcpcd # if existing
+sudo pacman -S  networkmanager network-manager-applet
+sudo systemctl enable NetworkManager
+reboot
+
+ip link  # Check hardware
+nmcli dev wifi connect <wifi-name> password <password>
+
+
+# Install MacBook Pro stuff
+
+yay -S mbpfan-git cpupower
+
+sudo systemctl enable mbpfan
+sudo systemctl enable cpupower
+
+
+## Define CPUs governor
+
+sudo vim /etc/default/cpupower
+governor='powersave'. # change line to
+
+
+## Make file and write two lines
+sudo vim /etc/modules
+coretemp
+applesmc
+
+
+## Enable continuous TRIM on SSD
+
+sudo vim /etc/fstab
+
+### on disk sda2, after: rw,relatime,
+
+data=ordered,discard,
+
+## Disable wake from S3 on XHC1
+
+sudo vim /etc/udev/rules.d/90-xhc_sleep.rules. # create file
+SUBSYSTEM=="pci", KERNEL=="0000:00:14.0", ATTR{power/wakeup}="disabled"
+
+### Check if XHC1 is disabled before and after reboot
+
+cat /proc/acpi/wakeup
+
+## Fix audio
+pacman -S alsa-utils alsa-plugins
+
+### Unmute the speakers
+alsamixer 
+
+## Enable tapping instead of being forced to click the bottom section of touchpad
+
+sudo vim /etc/X11/xorg.conf.d/30-touchpad.conf
+
+## Insert these lines:
+
+Section "InputClass"
+    Identifier "touchpad"
+    Driver "libinput"
+    MatchIsTouchpad "on"
+    Option "Tapping" "on"
+    Option "NaturalScrolling" "true"
+    Option "ClickMethod" "clickfinger"
+    Option "AccelProfile" "flat"
+EndSection
+
+## Enable natural scrolling on external mouse
+
+sudo vim /etc/X11/xorg.conf.d/30-pointer.conf
+
+## Insert these lines:
+
+Section "InputClass"
+    Identifier "pointer"
+    Driver "libinput"
+    MatchIsPointer "on"
+    Option "NaturalScrolling" "true"
+EndSection
+
+## Control keyboard backlight
+
+sudo pacman -S brightnessctl
+brightnessctl --list
+brightnessctl --device='smc::kbd_backlight' info
+brightnessctl --device='smc::kbd_backlight' set 127  # 50%
+
+
