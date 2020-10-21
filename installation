@@ -235,3 +235,10 @@ brightnessctl --list
 brightnessctl --device='smc::kbd_backlight' info
 brightnessctl --device='smc::kbd_backlight' set 127  # or 50%
 
+# Install and configure Bluetoot mouse
+
+sudo pacma -S bluez bluez-utils
+
+
+
+
