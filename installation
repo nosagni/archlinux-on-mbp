@@ -1,135 +1,120 @@
-# Boot from archlinux .iso
+# Arch Linux installation on a Macbook Pro '10,1'  'mid-2012' '2.7 Ghz' '15-Inch Retina' 'Intel HD graphics 4000'+'Nvidia GeForce GT 650m'
 
 
-# Change keyboard layout
-
-loadkeys is-latin1
+# Boot from archlinux.iso
 
 
-# Set the time
+# Change keyboard layout:
+loadkeys is-latin1 # Icelandic keyboard
 
+
+# Set the time:
 timedatectl set-ntp true
 
 
 # Connect to PHONE with USB TETHERING
 
 
-# Check if internet is working.
-
+# Check if internet is working:
 ping google.com
 
 
-# Partition the disk
-
+# Partition the disk:
 cgdisk /dev/sda
 1 sda1 EFI System (Boot Partition +200M)  ef00
 2 sda2 Linux filesystem (Root Partition)  8300
 
 
-# Create filesystem
-
+# Create the filesystem:
 mkfs.vfat -F32 /dev/sda1
 mkfs.ext4 /dev/sda2
 
 
-# Mount the disk and make folders
-
+# Mount the disk and make folders:
 mount /dev/sda2 /mnt
 mkdir /mnt/boot /mnt/home
 mount /dev/sda1 /mnt/boot
 
 
-# Install Linux on the disk
-
-pacstrap /mnt linux linux-firmware base base-devel vim
-
+# Install Linux onto the disk:
+pacstrap /mnt linux linux-firmware base base-devel
 genfstab -U /mnt >> /mnt/etc/fstab
 
 
-# Switch to disks root terminal
-
+# Switch to disks root terminal:
 arch-chroot /mnt
 
 
-# Set locale, keyboard and timezone
+# Install a text editor:
+pacman -S vim
 
+
+# Set locale, keyboard and timezone:
 vim /etc/locale.gen
 /en_US  # find en_US
 en_US.UTF-8 UTF-8  # uncomment en_US
 :wq  # write changes to file
 locale-gen  # Generate locales
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
-localectl set-keymap --no-convert is-latin1
-ln -sf /usr/share/zoneinfo/Iceland /etc/localtime
+localectl set-keymap --no-convert is-latin1 # Icelandic
+ln -sf /usr/share/zoneinfo/Iceland /etc/localtime # Iceland
 
 
-# Sync hardware clock
-
+# Sync hardware clock:
 hwclock --systohc --utc
 
 
-# Setup hostname
-
+# Setup hostname:
 echo "NAME" > /etc/hostname
 echo "127.0.0.1 localhost" >> /etc/hosts
 echo "::1 localhost" >> /etc/hosts
 echo "127.0.1.1 NAME.localdomain NAME" >> /etc/hosts
 
 
-# Uncomment %wheel
+# Uncomment %wheel:
 vim /etc/sudoers
 %wheel ALL=\(ALL\) ALL)
 
 
-# Set root password
-
+# Set root password:
 passwd
 
 
-# Install bootloader
-
+# Install bootloader:
 pacman -S dosfstools intel-ucode
 bootctl --path=/boot install
 
 
-# Create an Arch Linux boot entry file
-## You need the PARTUUID of your root partition (sda2)
-
+# Create an Arch Linux boot entry file:
+#+ You need the PARTUUID of your root partition (sda2)
 blkid  # write down PARTUUID
-
 vim /boot/loader/entries/arch.conf
-
+#+ Add these lines:
 title Arch Linux
 linux /vmlinuz-linux
 initrd /intel-ucode.img
 initrd /initramfs-linux.img
 options root=PARTUUID=           rw quiet acpi_mask_gpe=0x06
 
-
-## Tell systemd-boot boot manager to use arch.conf file
-
+#+ Tell systemd-boot boot manager to use arch.conf file:
 echo "default arch" > /boot/loader/loader.conf
 
 
-# Reboot into the new system
-
+# Reboot into the new system:
 exit
 umount -R /mnt
 systemctl reboot
 
 
-# Create user account
-
+# Create user account:
 useradd -m -G wheel -s /bin/bash NAME
 passwd NAME
 
-# Switch user
-
+# Switch user:
 su NAME
 
 
-# Install YAY for AUR
-
+# Install YAY for AUR:
 sudo pacman -S git
 cd  # user directory
 git clone https://aur.archlinux.org/yay.git
@@ -137,73 +122,67 @@ cd yay
 makepkg -si
 
 
-# Wi-Fi Internet
-
+# Wi-Fi Internet:
 yay -S broadcom-wl 
 sudo systemctl disable dhcpcd # if existing
 sudo pacman -S  networkmanager network-manager-applet
 sudo systemctl enable NetworkManager
 reboot
-
+#+ After reboot:
 ip link  # Check hardware
+#+ Connect:
 nmcli dev wifi connect <wifi-name> password <password>
 
 
-# Install mbpfan and cpupower
-
+# Install mbpfan and cpupower:
 yay -S mbpfan-git cpupower
-
 sudo systemctl enable mbpfan
 sudo systemctl enable cpupower
 
 
-# Define CPUs governor
-
+# Define CPUs governor:
 sudo vim /etc/default/cpupower
 governor='powersave'. # change line to
 
 
-# Make file and write two lines
-
+# Make file and write to it:
 sudo vim /etc/modules
+#+ the lines:
 coretemp
 applesmc
 
 
-# Enable continuous TRIM on SSD
-
+# Enable continuous TRIM on SSD:
 sudo vim /etc/fstab
-
-## on disk sda2, after: rw,relatime,
-
+#+ on disk sda2, after: rw,relatime,
 data=ordered,discard,
 
 
-# Disable wake from S3 on XHC1
-
-sudo vim /etc/udev/rules.d/90-xhc_sleep.rules. # create file
+# Disable wake from S3 on XHC1:
+sudo vim /etc/udev/rules.d/90-xhc_sleep.rules # create file
 SUBSYSTEM=="pci", KERNEL=="0000:00:14.0", ATTR{power/wakeup}="disabled"
-
-## Check if XHC1 is disabled before and after reboot
-
+#+ Check if XHC1 is disabled before and after reboot:
 cat /proc/acpi/wakeup
 
 
-# Fix audio
-
+# Fix audio:
 pacman -S alsa-utils alsa-plugins
+#+ Unmute the speakers:
+alsamixer # unmute
 
-## Unmute the speakers
 
-alsamixer 
+# Install X Window System:
+pacman -S xorg xorg-xinit
+#+ Configure with a copy of the .xinitrc file:
+cp /etc/X11/xinit/xinitrc ~/.xinitrc
+chmod +x .xinitrc
+#+ delete the last 5 lines in .xinitrc (starting wit "twn &") 
+#+ Configure a start of a window manager with 'exec' / start in terminal with startx
 
 
 # Enable tapping instead of being forced to click the bottom section of touchpad
-
 sudo vim /etc/X11/xorg.conf.d/30-touchpad.conf
-
-## Insert these lines:
-
+#+ Insert these lines:
 Section "InputClass"
     Identifier "touchpad"
     Driver "libinput"
@@ -214,13 +193,9 @@ Section "InputClass"
     Option "AccelProfile" "flat"
 EndSection
 
-
 # Enable natural scrolling on external mouse
-
 sudo vim /etc/X11/xorg.conf.d/30-pointer.conf
-
-## Insert these lines:
-
+#+ Insert these lines:
 Section "InputClass"
     Identifier "pointer"
     Driver "libinput"
@@ -229,16 +204,29 @@ Section "InputClass"
 EndSection
 
 # Set keyboard backlight
-
 sudo pacman -S brightnessctl
 brightnessctl --list
 brightnessctl --device='smc::kbd_backlight' info
-brightnessctl --device='smc::kbd_backlight' set 127  # or 50%
+brightnessctl --device='smc::kbd_backlight' set 127  # from 0 - 254 / or in %
+
 
 # Install and configure Bluetoot mouse
+sudo pacman -S bluez bluez-utils
+sudo systemctl start bluetooth.service
+sudo systemctl enable bluetooth.service
+[bluetooth]# help
+[bluetooth]# power on
+[bluetooth]# scan on
+[bluetooth]# list
+[bluetooth]# trust
+[bluetooth]# connect
+[bluetooth]# quit
 
-sudo pacma -S bluez bluez-utils
+
+# Controll screen brightness
+su root
+echo 1023 > /sys/class/backlight/gmux_backlight/brightness # from 0-1023
 
 
-
-
+# Install gpu-switch for switching between intel an nvidia graphics
+yay -S gpu-switch
