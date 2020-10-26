@@ -207,7 +207,7 @@ EndSection
 sudo pacman -S brightnessctl
 brightnessctl --list
 brightnessctl --device='smc::kbd_backlight' info
-brightnessctl --device='smc::kbd_backlight' set 127  # from 0 - 254 / or in %
+brightnessctl --device='smc::kbd_backlight' set 127  # from 1 - 255
 
 
 # Install and configure Bluetoot mouse
