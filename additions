@@ -1,34 +1,5 @@
 # Adding to the installation
 
-# Install some necessities:
-sudo pacman -S make wget tar chromium
-
-# Install DWM + DMENU + ST
-cd ~/
-git clone https://git.suckless.org/dwm
-git clone https://git.suckless.org/dmenu
-git clone https://git.suckless.org/st
-cd dwm
-sudo make clean install
-cd dmenu
-sudo make clean install
-cd st
-sudo make clean install
-#+ Add 'exec dwm' to the xinitrc file:
-vim .xinitrc
-#+ dwm runs with 'startx'
-
-# Install zsh:
-sudo pacman -S zsh
-#+ Change default shell:
-chsh -s /bin/zsh 
-#+ Activate zsh - Choose to make a .zshrc file
-zsh
-
-
-
-
-
 
 # Install some necessities:
 sudo pacman -S wget firefox alacritty fzf fd nmon slock ps_mem fuse2 vim-nerdtree 
