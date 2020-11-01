@@ -1,3 +1,31 @@
 # Adding to the installation
 
 
+# Install some necessities:
+sudo pacman -S wget firefox alacritty fzf fd nmon slock ps_mem fuse2 vim-nerdtree 
+yay -S pet-bin
+
+
+# Install DWM + DMENU + ST
+cd ~/
+git clone https://git.suckless.org/dwm
+git clone https://git.suckless.org/dmenu
+git clone https://git.suckless.org/st
+cd dwm
+sudo make clean install
+cd dmenu
+sudo make clean install
+cd st
+sudo make clean install
+
+
+# Configure DWM + DMENU + ST
+vim .xinitrc
+# Keymap
+setxkbmap -layout is
+# Display Resolution
+xrandr --dpi 220
+xrandr --size 1920x1200
+# Run DWM
+exec dwm
+

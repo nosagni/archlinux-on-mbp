@@ -1,6 +1,33 @@
 # Arch Linux installation on a Macbook Pro '10,1'  'mid-2012' '2.7 Ghz' '15-Inch Retina' 'Intel HD graphics 4000'+'Nvidia GeForce GT 650m'
 
 
+
+# Download archlinux-xxxxxxxxxx-x86_64.iso
+
+
+# Convert the ISO to UDRW Format:
+hdiutil convert -format UDRW -o archlinux-xxxxxxxxxx-x86_64.img archlinux-xxxxxxxxxx-x86_64.iso
+
+
+# Plug in USB - find it in the list:
+diskutil list  # like /dev/disk2
+
+
+# Partition the USB:
+diskutil partitionDisk /dev/disk2 1 "Free Space" "unused" "100%"
+
+
+# Write ISO to USB:
+sudo dd if=archlinux-xxxxxxxxxx-x86_64.img.dmg of=/dev/disk2 bs=1m
+
+
+# Eject the USB (when finished):
+diskutil eject /dev/disk2
+
+
+
+
+
 # Boot from archlinux.iso
 
 
@@ -21,7 +48,7 @@ ping google.com
 
 # Partition the disk:
 cgdisk /dev/sda
-1 sda1 EFI System (Boot Partition +200M)  ef00
+1 sda1 EFI System (Boot Partition +256M)  ef00
 2 sda2 Linux filesystem (Root Partition)  8300
 
 
@@ -176,7 +203,7 @@ pacman -S xorg xorg-xinit
 #+ Configure with a copy of the .xinitrc file:
 cp /etc/X11/xinit/xinitrc ~/.xinitrc
 chmod +x .xinitrc
-#+ delete the last 5 lines in .xinitrc (starting wit "twn &") 
+#+ delete the last 5 lines in .xinitrc (starting with "twn &") 
 #+ Configure a start of a window manager with 'exec' / start in terminal with startx
 
 
@@ -193,6 +220,7 @@ Section "InputClass"
     Option "AccelProfile" "flat"
 EndSection
 
+
 # Enable natural scrolling on external mouse
 sudo vim /etc/X11/xorg.conf.d/30-pointer.conf
 #+ Insert these lines:
@@ -202,6 +230,7 @@ Section "InputClass"
     MatchIsPointer "on"
     Option "NaturalScrolling" "true"
 EndSection
+
 
 # Set keyboard backlight
 sudo pacman -S brightnessctl
@@ -230,3 +259,5 @@ echo 1023 > /sys/class/backlight/gmux_backlight/brightness # from 0-1023
 
 # Install gpu-switch for switching between intel an nvidia graphics
 yay -S gpu-switch
+
+
