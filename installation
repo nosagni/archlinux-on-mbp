@@ -1,4 +1,6 @@
-# Arch Linux installation on a Macbook Pro '10,1'  'mid-2012' '2.7 Ghz' '15-Inch Retina' 'Intel HD graphics 4000'+'Nvidia GeForce GT 650m'
+# Arch Linux installation on a Macbook Pro
+# 10,1  mid-2012   2.7 Ghz   15-Inch Retina
+# Intel HD graphics 4000 + Nvidia GeForce GT 650m
 
 
 
@@ -172,7 +174,7 @@ sudo vim /etc/default/cpupower
 governor='powersave'. # change line to
 
 
-# Make file and write to it:
+# Make a file and write to it:
 sudo vim /etc/modules
 #+ the lines:
 coretemp
