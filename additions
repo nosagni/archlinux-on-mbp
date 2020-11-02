@@ -2,7 +2,8 @@
 
 
 # Install some necessities:
-sudo pacman -S wget firefox alacritty fzf fd nmon slock ps_mem fuse2 vim-nerdtree 
+sudo pacman -S wget firefox alacritty fzf fd nmon slock ps_mem fuse2 vim-nerdtree xclip
+
 yay -S pet-bin
 
 
